@@ -12,7 +12,7 @@ services:
     container_name: sentinel-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6379:6379" 
   qdrant:
     image: qdrant/qdrant
     container_name: sentinel-qdrant

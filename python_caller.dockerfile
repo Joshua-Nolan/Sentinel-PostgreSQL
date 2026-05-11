@@ -10,6 +10,7 @@ WORKDIR /python_scripts
 COPY /scripts/live_data_generator.py /python_scripts
 COPY /scripts/data_generator.py /python_scripts
 COPY /scripts/ingest_logs.py /python_scripts
+COPY /scripts/alert_pipeline.py /python_scripts
 
 RUN pip install pymongo faker
 

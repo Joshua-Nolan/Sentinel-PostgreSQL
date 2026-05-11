@@ -13,10 +13,8 @@ class Data_handler:
     LOG_FILE = r"../data/Logs/security_log.jsonl"
 
     def ingest_data(self):
-        
         self.COLLECTION.drop() # THIS CLEARS THE ENTIRE DATASET COLLECTION ! 
         
-    
         logs, logfiles = [], []
         logfiles.append(self.LOG_FILE)
         print(f"\nlog files to append: {logfiles}\n")

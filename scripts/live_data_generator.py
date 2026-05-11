@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from data_generator import DataGenerator as DG
 from ingest_logs import Data_handler
 from faker import Faker
-
+from alert_pipeline import ThreatDetector
 
 class Live_data_generator:
     
@@ -46,8 +46,9 @@ def main():
     
     
     data_generator = DG()
-    LDG = Live_data_generator()
-    DH = Data_handler()
+    Llive_Data_Gernerator = Live_data_generator()
+    data_handler = Data_handler()
+    Threat_Detector = ThreatDetector()
     print("\n\nData stream starting\n\n")
 
     EVENT_GENERATORS = [
@@ -61,26 +62,41 @@ def main():
         (data_generator.privilege_escalation, 1),    # 1%
     ]
     
-    if not os.path.exists(DG.OUTPUT_FOLDER):
-        os.makedirs(DG.OUTPUT_FOLDER)
-        print(f'Generating {DG.NUM_logs} at {DG.OUTPUT_FILE}')
+    if not os.path.exists(data_generator.OUTPUT_FOLDER):
+        os.makedirs(data_generator.OUTPUT_FOLDER)
+        print(f'Generating {data_generator.NUM_logs} at {data_generator.OUTPUT_FILE}')
 
-        with open(DG.OUTPUT_FILE, "w") as f:
-            for i in range(DG.NUM_logs):
-                method = DG.weighted_choice(EVENT_GENERATORS)
+        with open(data_generator.OUTPUT_FILE, "w") as f:
+            for i in range(data_generator.NUM_logs):
+                method = data_generator.weighted_choice(EVENT_GENERATORS)
                 log = method()
                 log["log_ID"] = str(uuid.uuid4())
                 f.write(json.dumps(log)+ "\n")
-        print("WROTE JSON LOGS TO FILE")
         
-    DH.ingest_data()
+    data_handler.ingest_data() # ingests data logs into mongoDB
     
     
-    ## CREATE ALERTS
+    
+    ## creates alerts and creats collection for them - should return info needed for me to later insertr a new data alert into that collection
+    db, alerts_collection = Threat_Detector.run()
+    
     
     while True:
-        pass
-    ## here we would then inifite loop add new data every X minutes
+        time.sleep(30)
+        method = data_generator.weighted_choice(EVENT_GENERATORS)
+        data = json.loads(json.dumps(method())) ## return a JSON python object
+        ## write to the collection for alerts
+        result = alerts_collection.insert_one(data)
+        if not result.acknowledged:
+            print(f'{result.acknowledged} | error in writing to alerts collection') 
+            return
+        print(result)    
+        
+        # with alerts_collection.watch() as changes:
+        #     for change in changes:
+        #         print(f'change found: {change}')
+    
+    
     
 if __name__ == "__main__":
     main()

@@ -18,13 +18,11 @@ class ThreatDetector:
     
     
     def __init__(self):
-        ## connect to mongo DB
-        self.db = MongoClient("mongodb://localhost:27017")["sentinel_ai"]
+        ## connect to mongo DB | has to us mongoDB not localhost as this is the name for its service in  Docker
+        self.db = MongoClient("mongodb://mongoDB:27017")["sentinel_ai"]
         self.logs_collection = self.db['logs']
-        self.alerts_collection = self.db['alerts']
-        ## get the logs collection and alerts collection 
-        # (alerts collection is created first time we populate it)
-        pass
+        self.alerts_collection = self.db['alerts'] # (alerts collection is created first time we populate it)
+        
         
     def detect_brute_force(self):
         """
@@ -169,31 +167,34 @@ class ThreatDetector:
         "timestamp_start": timestamp,
         }
         
-    def run(self, alerts: list[list]):
+    def run(self):
         """ Calls all the detection methods in sequence, collects all alerts, 
             and does a bulk insert into the alerts collection. Print how many alerts were created at the end.
         """
+        alerts = []
+        
+        alerts.extend(self.detect_privilege_escalation())
+        alerts.extend(self.detect_malware())
+        alerts.extend(self.detect_brute_force()) #extend since we each JSON element (which is just one json list per element) added to our array
+        alerts.extend(self.detect_port_scans())
+        
         alert_json_object_list = [json.loads(alert) for alert in alerts]
+        
         result = self.alerts_collection.insert_many(alert_json_object_list)
         self.alerts_collection.create_index("status")
         self.alerts_collection.create_index("event_type")
         self.alerts_collection.create_index("alert_creation")       
         self.alerts_collection.create_index("severities")       
         
-        print("collection created")
+        print(f"collection created with {len(alerts)} alerts")
         
+        return(self.db, self.alerts_collection)
         
         
 
 def main():
-    alerts = []
     TD = ThreatDetector()
-    alerts.extend(TD.detect_privilege_escalation())
-    alerts.extend(TD.detect_malware())
-    alerts.extend(TD.detect_brute_force()) #extend since we each JSON element (which is just one json list per element) added to our array
-    alerts.extend(TD.detect_port_scans())
-    print(len(alerts))
-    TD.run(alerts=alerts)
+    TD.run()
     
     
     

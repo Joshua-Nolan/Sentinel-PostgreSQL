@@ -257,7 +257,7 @@ def log_analyse_node(state: AgentState) -> AgentState:
     system_prompt = SystemMessage(content="you are an ai assistant in my cyber security team working with a SOC system, using the state answer my question to the best of your ability")
     new_human_prompt = HumanMessage(content=f"""
         Based on the following information, determine if the suspect IP should be 
-        added to watchlist, blocklist, or do nothing.
+        added to watchlist, blocklist, or do nothing. Make the answer section of the output just be the word of the action you choose.
         
         Suspect IP: {state["suspect_IP"]}
         Alert type: {state["alert_type"]}
@@ -265,7 +265,7 @@ def log_analyse_node(state: AgentState) -> AgentState:
     """)
     structured_model = model.with_structured_output(AnswerWithJustification)
     response = structured_model.invoke([system_prompt] + state["messages"] + [new_human_prompt])
-    print(f"\n\n answer: {response}")
+    print(f"\n\n answer: {response.answer}")
     return(state)
 
     

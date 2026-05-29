@@ -364,11 +364,32 @@ def RAG_node(state: AgentState) -> AgentState:
             limit = 5
         ) 
     
-    print(f"Search results type: {type(query_results)}")
-    state["RAG_Chunks_from_source"] = query_results
+    print(f"Search results type: {type(query_results.points)}")
+    results_text = "Payload: "
 
-    ## ------ report agent -------- ##
-    # think about what info from state to passa to model API call
+    for point in query_results.points:
+        results_text += (
+            f"Payload: {point.payload}\n"
+        )
+
+    print(results_text)
+    
+    system_prompt = SystemMessage(content=f'''You are a cyber security assistant designed to generate a report 
+                                    based on the data and information im going to sadd
+                                    ass to you, this information is relevant to a 
+                                    cyber security incident that has been detected.                                   
+                                    You will be passed chunks of text from some documents regarding best practices with how to handle
+                                    and respond to the detect threat incident.  
+                                    I want you to return a 500 character string that I can then turn into a PDF. 
+                                  ''')
+    
+    response = model.invoke([system_prompt] + state["messages"] + data + state["alert_type"] + state["IP_info"])
+    print(f"\n\n\n\n {response.content}")
+    
+    ## create this into a PDF and save it out then push to DB
+    return state
+    ## ------ report agent -------- ##   # think about what info from state to passa to model API call
+    
     # then invoke model with possing the data and with a structured output reply back (with_structured_output() method from earlier)
     # write this report to a custom colleciton in mongoDB and also create a PDF file from this data in the same node 
 

@@ -365,25 +365,26 @@ def RAG_node(state: AgentState) -> AgentState:
         ) 
     
     print(f"Search results type: {type(query_results.points)}")
-    results_text = "Payload: "
+    results_lines = []
 
     for point in query_results.points:
-        results_text += (
-            f"Payload: {point.payload}\n"
-        )
+        results_lines.append(f"Payload: {point.payload}")
 
-    print(results_text)
-    
+    results_text = "\n".join(results_lines)
     system_prompt = SystemMessage(content=f'''You are a cyber security assistant designed to generate a report 
                                     based on the data and information im going to sadd
                                     ass to you, this information is relevant to a 
                                     cyber security incident that has been detected.                                   
                                     You will be passed chunks of text from some documents regarding best practices with how to handle
                                     and respond to the detect threat incident.  
-                                    I want you to return a 500 character string that I can then turn into a PDF. 
+                                    I want you to return a 500 word string that I can then turn into a PDF - do not make any tool calls. 
+                                    Here is the data that is relevant: 
+                                    {results_text}, 
+                                    Alert Type: {state["alert_type"]},
+                                    IP Info: {state["IP_info"]}. 
                                   ''')
     
-    response = model.invoke([system_prompt] + state["messages"] + data + state["alert_type"] + state["IP_info"])
+    response = model.invoke([system_prompt] + state["messages"])
     print(f"\n\n\n\n {response.content}")
     
     ## create this into a PDF and save it out then push to DB

@@ -1,4 +1,5 @@
 import time, os, requests
+from fpdf import FPDF
 from pymongo import MongoClient
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
@@ -149,6 +150,7 @@ def listen(graph: StateGraph):
                                 }
                                 print(f"initial state: {inputs}")
                                 print_stream(app.stream(inputs, stream_mode="values"))
+                                return
                             except Exception as error:
                                 print(f"error in calling agent: {str(error)}")
                         
@@ -386,14 +388,30 @@ def RAG_node(state: AgentState) -> AgentState:
     
     response = model.invoke([system_prompt] + state["messages"])
     print(f"\n\n\n\n {response.content}")
-    
-    ## create this into a PDF and save it out then push to DB
-    return state
-    ## ------ report agent -------- ##   # think about what info from state to passa to model API call
-    
-    # then invoke model with possing the data and with a structured output reply back (with_structured_output() method from earlier)
-    # write this report to a custom colleciton in mongoDB and also create a PDF file from this data in the same node 
 
+    
+    pdf_text = str(response.content)
+
+    print("Response length:", len(pdf_text))
+
+    pdf = FPDF()
+    pdf.add_page()
+
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, "Cyber Security Incident Report", ln=True)
+
+    pdf.ln(5)
+
+    pdf.set_font("Arial", size=12)
+
+    # Force unsupported chars to be removed
+    pdf_text = pdf_text.encode("latin-1", "ignore").decode("latin-1")
+
+    pdf.multi_cell(0, 8, pdf_text)
+
+    pdf.output("cyber_report.pdf")
+
+    return state
     
 
 tools = [get_IP_info, escalate_alert_entry]

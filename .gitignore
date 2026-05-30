@@ -34,3 +34,5 @@ build/
 
 learn_langGraph.py
 output.jpg
+
+agents/*.pdf

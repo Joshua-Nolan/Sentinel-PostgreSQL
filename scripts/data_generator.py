@@ -193,6 +193,7 @@ def main():
     connection = connect(config=database_config)
     cur = connection.cursor()
     print("Complete")
+    
             
 if __name__  == "__main__":
     main()

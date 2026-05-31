@@ -83,7 +83,12 @@ def print_stream(stream):
      
 @tool
 def get_IP_info(IP: str):
-    """A method used to query the mongoDB and return more info for entries with that same IP address."""
+    """A method used to query the mongoDB and return more info for entries with that same IP address.
+    
+        THIS METHOD NEEDS TO BE UPDATED TO READ FROM POSTGRESQL
+    """
+    
+    
     pipeline = [
         { "$match": { "source_ip": IP } },
         { "$sort": { "timestamp": -1}},

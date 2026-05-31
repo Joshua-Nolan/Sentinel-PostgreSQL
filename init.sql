@@ -1,11 +1,11 @@
 CREATE TABLE logs(
-    id serial not null,
+    id SERIAL NOT NULL PRIMARY KEY,
     timestamp TIMESTAMPTZ,
-    event_type text,
-    source_ip text,
-    destination text,
-    username text,
-    severity text,
-    message text,
-    log_id text
+    event_type TEXT,
+    source_ip TEXT,
+    destination TEXT,
+    username TEXT,
+    severity TEXT,
+    message TEXT,
+    log_id TEXT
 );
